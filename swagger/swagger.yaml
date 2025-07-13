@@ -2,6 +2,8 @@ openapi: 3.0.0
 info:
   title: TM470 API
   version: 1.0.0
+servers:
+  - url: http://localhost:5000
 paths:
   /health:
     get:
@@ -9,3 +11,68 @@ paths:
       responses:
         '200':
           description: API is healthy
+  /register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - firstName
+                - lastName
+                - puppyName
+                - username
+                - password
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                puppyName:
+                  type: string
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  userId:
+                    type: string
+        '400':
+          description: Missing fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '409':
+          description: Username already taken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
