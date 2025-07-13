@@ -267,6 +267,51 @@ paths:
                 properties:
                   message:
                     type: string
+  /profile:
+    get:
+      summary: Get user profile and training progress
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile and progress data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
+                  puppyName:
+                    type: string
+                  totalComplete:
+                    type: integer
+                  categoryProgress:
+                    type: object
+                    additionalProperties:
+                      type: integer
+        '401':
+          description: Unauthorized – user not logged in or invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
 
 
 components:

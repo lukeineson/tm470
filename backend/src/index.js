@@ -173,6 +173,58 @@ app.post('/progress/:moduleId', authenticateToken, async (req, res) => {
   }
 });
 
+// Get Profile endpoint
+
+app.get('/profile', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Get user info
+    const user = await User.findById(userId);
+    if (!user) return res.status(401).json({ message: 'Unauthorized' });
+
+    // Get all modules
+    const allModules = await TrainingModule.find();
+    const completedModules = user.completedModules.map(id => id.toString());
+
+    // Total completed
+    const totalComplete = completedModules.length;
+
+    // Categories and progress
+    const categories = {};
+    for (const module of allModules) {
+      const cat = module.category;
+
+      if (!categories[cat]) {
+        categories[cat] = { total: 0, completed: 0 };
+      }
+
+      categories[cat].total += 1;
+      if (completedModules.includes(module._id.toString())) {
+        categories[cat].completed += 1;
+      }
+    }
+
+    // Build categoryProgress as percent
+    const categoryProgress = {};
+    for (const [cat, { total, completed }] of Object.entries(categories)) {
+      categoryProgress[cat] = total === 0 ? 0 : Math.round((completed / total) * 100);
+    }
+
+    res.status(200).json({
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      puppyName: user.puppyName,
+      totalComplete,
+      categoryProgress,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Backend is running' });
 });
