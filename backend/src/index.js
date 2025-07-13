@@ -12,8 +12,9 @@ const authenticateToken = require('./middleware/auth');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
-app.use(express.json());
+// Middleware setup
+app.use(cors()); // Enable CORS for all origins
+app.use(express.json()); // Parse incoming JSON requests
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
@@ -25,22 +26,30 @@ mongoose.connect(process.env.MONGODB_URI, {
   console.error('MongoDB connection error:', err);
 });
 
-// Register endpoint
+/**
+ * @route   POST /register
+ * @desc    Register a new user
+ * @access  Public
+ */
 app.post('/register', async (req, res) => {
   try {
     const { firstName, lastName, puppyName, username, password } = req.body;
 
+    // Check for required fields
     if (!firstName || !lastName || !puppyName || !username || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+    // Check for existing user
     const existingUser = await User.findOne({ username });
     if (existingUser) {
       return res.status(409).json({ message: "Username already taken" });
     }
 
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Create and save new user
     const newUser = new User({
       firstName,
       lastName,
@@ -62,31 +71,33 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// Login Endpoint
+/**
+ * @route   POST /login
+ * @desc    Authenticate user and return JWT token
+ * @access  Public
+ */
 app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Basic validation
+    // Validate request
     if (!username || !password) {
       return res.status(400).json({ message: "Username and password are required" });
     }
 
+    // Find user by username
     const user = await User.findOne({ username });
-
-    // User not found
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // Compare password
     const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    // Password doesn't match
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Generate JWT token
+    // Generate and return JWT token
     const token = jwt.sign(
       { userId: user._id, username: user.username },
       process.env.JWT_SECRET,
@@ -100,17 +111,20 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Get Modules Endpoint
+/**
+ * @route   GET /modules
+ * @desc    Get all training modules with completion status for the logged-in user
+ * @access  Private
+ */
 app.get('/modules', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).lean();
-
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const completedModuleIds = new Set(user.completedModules.map(id => id.toString()));
-
     const allModules = await TrainingModule.find({}).lean();
 
+    // Map modules and add completion status
     const result = allModules.map(mod => ({
       _id: mod._id,
       title: mod.title,
@@ -127,10 +141,15 @@ app.get('/modules', authenticateToken, async (req, res) => {
   }
 });
 
-// Get Module By ID Endpoint
+/**
+ * @route   GET /module/:id
+ * @desc    Get details of a specific training module by ID
+ * @access  Public
+ */
 app.get('/module/:id', async (req, res) => {
   const { id } = req.params;
 
+  // Validate MongoDB ObjectId
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ message: 'Invalid module ID' });
   }
@@ -147,17 +166,20 @@ app.get('/module/:id', async (req, res) => {
   }
 });
 
-// Update module as complete endpoint
+/**
+ * @route   POST /progress/:moduleId
+ * @desc    Mark a module as completed for the current user
+ * @access  Private
+ */
 app.post('/progress/:moduleId', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.userId; 
+    const userId = req.user.userId;
     const moduleId = req.params.moduleId;
 
-    // Find user
     const user = await User.findById(userId);
     if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
-    // If moduleId is already in completedModules, do nothing
+    // Add moduleId if not already completed
     if (!user.completedModules.includes(moduleId)) {
       user.completedModules.push(moduleId);
       await user.save();
@@ -173,28 +195,26 @@ app.post('/progress/:moduleId', authenticateToken, async (req, res) => {
   }
 });
 
-// Get Profile endpoint
-
+/**
+ * @route   GET /profile
+ * @desc    Get user's profile and training progress summary
+ * @access  Private
+ */
 app.get('/profile', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    // Get user info
     const user = await User.findById(userId);
     if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
-    // Get all modules
     const allModules = await TrainingModule.find();
     const completedModules = user.completedModules.map(id => id.toString());
-
-    // Total completed
     const totalComplete = completedModules.length;
 
-    // Categories and progress
+    // Calculate progress per category
     const categories = {};
     for (const module of allModules) {
       const cat = module.category;
-
       if (!categories[cat]) {
         categories[cat] = { total: 0, completed: 0 };
       }
@@ -205,7 +225,7 @@ app.get('/profile', authenticateToken, async (req, res) => {
       }
     }
 
-    // Build categoryProgress as percent
+    // Format category progress as percentage
     const categoryProgress = {};
     for (const [cat, { total, completed }] of Object.entries(categories)) {
       categoryProgress[cat] = total === 0 ? 0 : Math.round((completed / total) * 100);
@@ -225,12 +245,16 @@ app.get('/profile', authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * @route   GET /health
+ * @desc    Health check endpoint
+ * @access  Public
+ */
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Backend is running' });
 });
 
+// Start the server
 app.listen(PORT, () => {
   console.log(`API is listening on port ${PORT}`);
 });
-
-
