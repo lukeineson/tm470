@@ -127,6 +127,26 @@ app.get('/modules', authenticateToken, async (req, res) => {
   }
 });
 
+// Get Module By ID Endpoint
+app.get('/module/:id', async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid module ID' });
+  }
+
+  try {
+    const module = await TrainingModule.findById(id);
+    if (!module) {
+      return res.status(404).json({ message: 'Module not found' });
+    }
+    res.json(module);
+  } catch (error) {
+    console.error('Error fetching module:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Backend is running' });
 });

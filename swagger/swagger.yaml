@@ -166,6 +166,66 @@ paths:
           description: Unauthorized – missing or invalid token
         '500':
           description: Server error
+  /module/{id}:
+    get:
+      summary: Get training module by ID
+      parameters:
+        - name: id
+          in: path
+          description: Training module ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Training module details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                  title:
+                    type: string
+                  category:
+                    type: string
+                  difficulty:
+                    type: string
+                  imagePath:
+                    type: string
+                  trainingSteps:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '404':
+          description: Module not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
 
 components:
   securitySchemes:
