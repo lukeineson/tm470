@@ -6,6 +6,8 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const User = require('./models/User');
+const TrainingModule = require('./models/TrainingModule');
+const authenticateToken = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -95,6 +97,33 @@ app.post('/login', async (req, res) => {
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get Modules Endpoint
+app.get('/modules', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).lean();
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const completedModuleIds = new Set(user.completedModules.map(id => id.toString()));
+
+    const allModules = await TrainingModule.find({}).lean();
+
+    const result = allModules.map(mod => ({
+      _id: mod._id,
+      title: mod.title,
+      category: mod.category,
+      difficulty: mod.difficulty,
+      imagePath: mod.imagePath,
+      completed: completedModuleIds.has(mod._id.toString())
+    }));
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error('Error fetching modules:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
