@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const path = require('path'); // ✅ added
 require('dotenv').config();
 
 const User = require('./models/User');
@@ -15,6 +16,9 @@ const PORT = process.env.PORT || 5000;
 // Middleware setup
 app.use(cors()); // Enable CORS for all origins
 app.use(express.json()); // Parse incoming JSON requests
+
+// ✅ Serve images folder
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI, {
@@ -35,21 +39,15 @@ app.post('/register', async (req, res) => {
   try {
     const { firstName, lastName, puppyName, username, password } = req.body;
 
-    // Check for required fields
     if (!firstName || !lastName || !puppyName || !username || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Check for existing user
     const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(409).json({ message: "Username already taken" });
-    }
+    if (existingUser) return res.status(409).json({ message: "Username already taken" });
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create and save new user
     const newUser = new User({
       firstName,
       lastName,
@@ -80,24 +78,16 @@ app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Validate request
     if (!username || !password) {
       return res.status(400).json({ message: "Username and password are required" });
     }
 
-    // Find user by username
     const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
-    // Compare password
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!isPasswordValid) return res.status(401).json({ message: "Invalid credentials" });
 
-    // Generate and return JWT token
     const token = jwt.sign(
       { userId: user._id, username: user.username },
       process.env.JWT_SECRET,
@@ -124,7 +114,6 @@ app.get('/modules', authenticateToken, async (req, res) => {
     const completedModuleIds = new Set(user.completedModules.map(id => id.toString()));
     const allModules = await TrainingModule.find({}).lean();
 
-    // Map modules and add completion status
     const result = allModules.map(mod => ({
       _id: mod._id,
       title: mod.title,
@@ -143,23 +132,24 @@ app.get('/modules', authenticateToken, async (req, res) => {
 
 /**
  * @route   GET /module/:id
- * @desc    Get details of a specific training module by ID
- * @access  Public
+ * @desc    Get details of a specific training module by ID, including completion status for logged-in user
+ * @access  Private
  */
-app.get('/module/:id', async (req, res) => {
+app.get('/module/:id', authenticateToken, async (req, res) => {
   const { id } = req.params;
 
-  // Validate MongoDB ObjectId
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ message: 'Invalid module ID' });
   }
 
   try {
     const module = await TrainingModule.findById(id);
-    if (!module) {
-      return res.status(404).json({ message: 'Module not found' });
-    }
-    res.json(module);
+    if (!module) return res.status(404).json({ message: 'Module not found' });
+
+    const user = await User.findById(req.user.userId);
+    const completed = user.completedModules.includes(id);
+
+    res.json({ ...module.toObject(), completed });
   } catch (error) {
     console.error('Error fetching module:', error);
     res.status(500).json({ message: 'Server error' });
@@ -168,7 +158,7 @@ app.get('/module/:id', async (req, res) => {
 
 /**
  * @route   POST /progress/:moduleId
- * @desc    Mark a module as completed for the current user
+ * @desc    Toggle completion of a module for the current user
  * @access  Private
  */
 app.post('/progress/:moduleId', authenticateToken, async (req, res) => {
@@ -179,14 +169,19 @@ app.post('/progress/:moduleId', authenticateToken, async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
-    // Add moduleId if not already completed
-    if (!user.completedModules.includes(moduleId)) {
+    const index = user.completedModules.indexOf(moduleId);
+    if (index === -1) {
+      // Not completed yet → mark as completed
       user.completedModules.push(moduleId);
-      await user.save();
+    } else {
+      // Already completed → remove it
+      user.completedModules.splice(index, 1);
     }
 
+    await user.save();
+
     res.status(200).json({
-      message: 'Module marked as completed',
+      message: 'Module completion toggled',
       completedModules: user.completedModules,
     });
   } catch (error) {
@@ -211,13 +206,10 @@ app.get('/profile', authenticateToken, async (req, res) => {
     const completedModules = user.completedModules.map(id => id.toString());
     const totalComplete = completedModules.length;
 
-    // Calculate progress per category
     const categories = {};
     for (const module of allModules) {
       const cat = module.category;
-      if (!categories[cat]) {
-        categories[cat] = { total: 0, completed: 0 };
-      }
+      if (!categories[cat]) categories[cat] = { total: 0, completed: 0 };
 
       categories[cat].total += 1;
       if (completedModules.includes(module._id.toString())) {
@@ -225,7 +217,6 @@ app.get('/profile', authenticateToken, async (req, res) => {
       }
     }
 
-    // Format category progress as percentage
     const categoryProgress = {};
     for (const [cat, { total, completed }] of Object.entries(categories)) {
       categoryProgress[cat] = total === 0 ? 0 : Math.round((completed / total) * 100);
