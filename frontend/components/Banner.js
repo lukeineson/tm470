@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
+  Dimensions,
 } from "react-native";
 
 export default function Banner({ title, navigation, onLogout }) {
@@ -13,11 +14,16 @@ export default function Banner({ title, navigation, onLogout }) {
   return (
     <>
       <View style={styles.banner}>
+        {/* Burger menu button */}
         <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
           <Text style={styles.burger}>{menuVisible ? "✕" : "☰"}</Text>
         </TouchableOpacity>
+
+        {/* Title */}
         <Text style={styles.title}>{title}</Text>
-        <View style={{ width: 28 }} /> {/* Spacer for symmetry */}
+
+        {/* Spacer for symmetry */}
+        <View style={{ width: 28 }} />
       </View>
 
       {/* Menu Overlay */}
@@ -29,6 +35,7 @@ export default function Banner({ title, navigation, onLogout }) {
       >
         <TouchableOpacity
           style={styles.overlay}
+          activeOpacity={1}
           onPress={() => setMenuVisible(false)}
         >
           <View style={styles.menu}>
@@ -66,8 +73,11 @@ export default function Banner({ title, navigation, onLogout }) {
   );
 }
 
+const { width } = Dimensions.get("window");
+
 const styles = StyleSheet.create({
   banner: {
+    width: width, // 🔑 Full width across screen
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -82,7 +92,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
     textAlign: "center",
-    flex: 1,
+    flex: 1, // keeps it centered
   },
   burger: {
     fontSize: 28,
@@ -107,5 +117,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-
 
