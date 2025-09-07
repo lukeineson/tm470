@@ -1,5 +1,5 @@
+// App.js
 import React, { useEffect, useState } from "react";
-import { Text, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
@@ -12,6 +12,10 @@ import ProfileScreen from "./screens/ProfileScreen";
 
 const Stack = createNativeStackNavigator();
 
+/**
+ * Root app with stack navigation.
+ * Header hidden to use the custom Banner across screens.
+ */
 export default function App() {
   const [message, setMessage] = useState("");
 
@@ -24,12 +28,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Login"
-        screenOptions={{
-          headerShown: false, // hides the default header to match your design
-        }}
-      >
+      <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />

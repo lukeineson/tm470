@@ -1,3 +1,4 @@
+// components/Banner.js
 import React, { useState } from "react";
 import {
   View,
@@ -5,25 +6,63 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
-  Dimensions,
+  useWindowDimensions,
+  Platform,
 } from "react-native";
 
+/**
+ * App-wide banner/header.
+ * - Responsive: typography and paddings adapt to screen width.
+ * - Accessibility: all actionable items expose labels/roles/hints.
+ */
 export default function Banner({ title, navigation, onLogout }) {
   const [menuVisible, setMenuVisible] = useState(false);
+  const { width } = useWindowDimensions();
+
+  // Simple responsive scale — tweak breakpoints as needed.
+  const isPhone = width < 380;
+  const isTablet = width >= 768;
+
+  const FONT_TITLE = isTablet ? 30 : isPhone ? 22 : 26;
+  const PADDING_H = isTablet ? 28 : isPhone ? 14 : 20;
+  const PADDING_V = isTablet ? 18 : isPhone ? 12 : 15;
 
   return (
     <>
-      <View style={styles.banner}>
+      <View
+        style={[
+          styles.banner,
+          { paddingHorizontal: PADDING_H, paddingVertical: PADDING_V },
+        ]}
+        accessible
+        accessibilityRole="header"
+        accessibilityLabel={`${title} header`}
+      >
         {/* Burger menu button */}
-        <TouchableOpacity onPress={() => setMenuVisible(!menuVisible)}>
-          <Text style={styles.burger}>{menuVisible ? "✕" : "☰"}</Text>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={menuVisible ? "Close menu" : "Open menu"}
+          accessibilityHint="Opens navigation options"
+          onPress={() => setMenuVisible((v) => !v)}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          style={styles.leftIconBox}
+        >
+          <Text style={[styles.burger, { fontSize: isTablet ? 30 : 28 }]}>
+            {menuVisible ? "✕" : "☰"}
+          </Text>
         </TouchableOpacity>
 
         {/* Title */}
-        <Text style={styles.title}>{title}</Text>
+        <Text
+          style={[styles.title, { fontSize: FONT_TITLE }]}
+          numberOfLines={1}
+          accessibilityRole={Platform.OS === "web" ? "heading" : undefined}
+        >
+          {title}
+        </Text>
 
         {/* Spacer for symmetry */}
-        <View style={{ width: 28 }} />
+        <View style={styles.leftIconBox} />
       </View>
 
       {/* Menu Overlay */}
@@ -32,72 +71,91 @@ export default function Banner({ title, navigation, onLogout }) {
         transparent
         visible={menuVisible}
         onRequestClose={() => setMenuVisible(false)}
+        presentationStyle="overFullScreen"
       >
-        <TouchableOpacity
-          style={styles.overlay}
-          activeOpacity={1}
-          onPress={() => setMenuVisible(false)}
-        >
-          <View style={styles.menu}>
-            <TouchableOpacity onPress={() => setMenuVisible(false)}>
+        <View style={styles.overlay} accessible accessibilityLabel="Menu overlay">
+          <View
+            style={[
+              styles.menu,
+              { paddingTop: isTablet ? 70 : 60, paddingHorizontal: PADDING_H },
+            ]}
+            accessibilityViewIsModal
+            accessibilityLabel="Navigation menu"
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Close menu"
+              onPress={() => setMenuVisible(false)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
               <Text style={styles.menuItem}>✖</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Go to Home"
               onPress={() => {
                 setMenuVisible(false);
                 navigation.navigate("Home");
               }}
+              style={styles.menuTap}
             >
-              <Text style={styles.menuItem}>Home</Text>
+              <Text style={styles.menuText}>Home</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Go to Profile"
               onPress={() => {
                 setMenuVisible(false);
                 navigation.navigate("Profile");
               }}
+              style={styles.menuTap}
             >
-              <Text style={styles.menuItem}>Profile</Text>
+              <Text style={styles.menuText}>Profile</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Log out"
+              accessibilityHint="Logs you out and returns to the login screen"
               onPress={() => {
                 setMenuVisible(false);
-                onLogout();
+                onLogout?.();
               }}
+              style={styles.menuTap}
             >
-              <Text style={styles.menuItem}>Logout</Text>
+              <Text style={styles.menuText}>Logout</Text>
             </TouchableOpacity>
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     </>
   );
 }
 
-const { width } = Dimensions.get("window");
-
 const styles = StyleSheet.create({
   banner: {
-    width: width, // 🔑 Full width across screen
+    width: "100%",
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#00000040",
     backgroundColor: "rgba(4, 42, 255, 0.6)",
   },
+  leftIconBox: {
+    width: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   title: {
-    fontSize: 28,
+    flex: 1,
     fontWeight: "bold",
     color: "#fff",
     textAlign: "center",
-    flex: 1, // keeps it centered
   },
   burger: {
-    fontSize: 28,
     color: "#fff",
-    width: 28,
     textAlign: "center",
   },
   overlay: {
@@ -107,14 +165,20 @@ const styles = StyleSheet.create({
   },
   menu: {
     backgroundColor: "rgba(4, 42, 255, 1)",
-    padding: 20,
-    paddingTop: 60,
+    paddingBottom: 24,
+  },
+  menuTap: {
+    paddingVertical: 14,
+  },
+  menuText: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "bold",
   },
   menuItem: {
-    fontSize: 20,
+    fontSize: 22,
     color: "#fff",
-    marginBottom: 20,
+    marginBottom: 16,
     fontWeight: "bold",
   },
 });
-

@@ -1,18 +1,27 @@
+// screens/ProfileScreen.js
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   View,
   Text,
   StyleSheet,
-  Dimensions,
   Alert,
   ScrollView,
+  useWindowDimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Banner from "../components/Banner";
 
+/**
+ * Profile screen with progress summary.
+ * - Responsive: card width caps; typography scales with width.
+ * - Accessibility: progress bars expose accessibilityValue (min/max/now).
+ */
 export default function ProfileScreen({ navigation }) {
   const [profile, setProfile] = useState(null);
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 768;
+  const cardMaxWidth = isTablet ? 720 : 560;
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem("userToken");
@@ -27,10 +36,9 @@ export default function ProfileScreen({ navigation }) {
         return;
       }
 
-      const res = await fetch(
-        `${process.env.API_URL || "http://localhost:5000"}/profile`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await fetch(`${process.env.API_URL || "http://localhost:5000"}/profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!res.ok) throw new Error("Failed to fetch profile");
 
@@ -50,7 +58,7 @@ export default function ProfileScreen({ navigation }) {
     return (
       <SafeAreaView style={styles.container}>
         <Banner title="Profile" navigation={navigation} onLogout={handleLogout} />
-        <View style={styles.card}>
+        <View style={[styles.card, { maxWidth: cardMaxWidth }]}>
           <Text style={styles.loadingText}>Loading profile...</Text>
         </View>
       </SafeAreaView>
@@ -61,7 +69,7 @@ export default function ProfileScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <Banner title="TrainHeroPup" navigation={navigation} onLogout={handleLogout} />
 
-      <View style={styles.card}>
+      <View style={[styles.card, { maxWidth: cardMaxWidth }]}>
         <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
           {/* User Info */}
           <Text style={styles.text}>Username: {profile.username}</Text>
@@ -78,12 +86,18 @@ export default function ProfileScreen({ navigation }) {
 
           <Text style={[styles.text, styles.section]}>Percentage Completed:</Text>
           {Object.entries(profile.categoryProgress).map(([category, percent]) => (
-            <View key={category} style={{ marginBottom: 15 }}>
-              <View style={styles.progressRow}>
+            <View key={category} style={{ marginBottom: 14 }}>
+              <View style={styles.progressRow} accessible>
                 <Text style={styles.text}>{category}</Text>
                 <Text style={styles.text}>{percent}%</Text>
               </View>
-              <View style={styles.progressBarBackground}>
+              <View
+                style={styles.progressBarBackground}
+                accessible
+                accessibilityRole="progressbar"
+                accessibilityLabel={`${category} progress`}
+                accessibilityValue={{ min: 0, max: 100, now: percent }}
+              >
                 <View style={[styles.progressBarFill, { width: `${percent}%` }]} />
               </View>
             </View>
@@ -94,8 +108,6 @@ export default function ProfileScreen({ navigation }) {
   );
 }
 
-const { width } = Dimensions.get("window");
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -103,19 +115,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   card: {
-    width: width * 0.9,
+    width: "92%",
     backgroundColor: "rgba(252, 236, 236, 0.25)",
     borderRadius: 12,
     padding: 20,
-    marginTop: 20,
+    marginTop: 16,
   },
-  text: {
-    fontSize: 16,
-    color: "#fff",
-  },
+  text: { fontSize: 16, color: "#fff" },
   section: {
-    marginTop: 20,
-    marginBottom: 5,
+    marginTop: 18,
+    marginBottom: 6,
     fontWeight: "bold",
     fontSize: 18,
     color: "#fff",
@@ -123,7 +132,7 @@ const styles = StyleSheet.create({
   progressRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 5,
+    marginBottom: 6,
   },
   progressBarBackground: {
     width: "100%",
@@ -132,13 +141,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     overflow: "hidden",
   },
-  progressBarFill: {
-    height: "100%",
-    backgroundColor: "#04d9ff",
-  },
-  loadingText: {
-    fontSize: 16,
-    color: "#fff",
-    textAlign: "center",
-  },
+  progressBarFill: { height: "100%", backgroundColor: "#04d9ff" },
+  loadingText: { fontSize: 16, color: "#fff", textAlign: "center" },
 });
+
