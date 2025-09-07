@@ -1,5 +1,5 @@
 // components/Banner.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,18 +8,20 @@ import {
   Modal,
   useWindowDimensions,
   Platform,
+  Button,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
- * App-wide banner/header.
+ * App-wide banner/header with Privacy Notice.
  * - Responsive: typography and paddings adapt to screen width.
  * - Accessibility: all actionable items expose labels/roles/hints.
  */
 export default function Banner({ title, navigation, onLogout }) {
   const [menuVisible, setMenuVisible] = useState(false);
+  const [privacyVisible, setPrivacyVisible] = useState(false);
   const { width } = useWindowDimensions();
 
-  // Simple responsive scale — tweak breakpoints as needed.
   const isPhone = width < 380;
   const isTablet = width >= 768;
 
@@ -27,13 +29,24 @@ export default function Banner({ title, navigation, onLogout }) {
   const PADDING_H = isTablet ? 28 : isPhone ? 14 : 20;
   const PADDING_V = isTablet ? 18 : isPhone ? 12 : 15;
 
+  // Show Privacy Notice on first launch
+  useEffect(() => {
+    (async () => {
+      const accepted = await AsyncStorage.getItem("privacyAccepted");
+      if (!accepted) setPrivacyVisible(true);
+    })();
+  }, []);
+
+  const handleAcceptPrivacy = async () => {
+    await AsyncStorage.setItem("privacyAccepted", "true");
+    setPrivacyVisible(false);
+  };
+
   return (
     <>
+      {/* Banner */}
       <View
-        style={[
-          styles.banner,
-          { paddingHorizontal: PADDING_H, paddingVertical: PADDING_V },
-        ]}
+        style={[styles.banner, { paddingHorizontal: PADDING_H, paddingVertical: PADDING_V }]}
         accessible
         accessibilityRole="header"
         accessibilityLabel={`${title} header`}
@@ -75,10 +88,7 @@ export default function Banner({ title, navigation, onLogout }) {
       >
         <View style={styles.overlay} accessible accessibilityLabel="Menu overlay">
           <View
-            style={[
-              styles.menu,
-              { paddingTop: isTablet ? 70 : 60, paddingHorizontal: PADDING_H },
-            ]}
+            style={[styles.menu, { paddingTop: isTablet ? 70 : 60, paddingHorizontal: PADDING_H }]}
             accessibilityViewIsModal
             accessibilityLabel="Navigation menu"
           >
@@ -126,6 +136,33 @@ export default function Banner({ title, navigation, onLogout }) {
               style={styles.menuTap}
             >
               <Text style={styles.menuText}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Privacy Notice Modal */}
+      <Modal
+        animationType="slide"
+        transparent
+        visible={privacyVisible}
+        onRequestClose={() => {}}
+        presentationStyle="overFullScreen"
+      >
+        <View style={styles.privacyOverlay}>
+          <View style={styles.privacyModal}>
+            <Text style={styles.privacyTitle}>Privacy Notice</Text>
+            <Text style={styles.privacyText}>
+              TrainHeroPup stores your training progress locally on your device. No personal data
+              is shared with anyone. You can reset your progress anytime.
+            </Text>
+            <TouchableOpacity
+              style={styles.privacyButton}
+              onPress={handleAcceptPrivacy}
+              accessibilityRole="button"
+              accessibilityLabel="Accept privacy notice"
+            >
+              <Text style={styles.privacyButtonText}>I Understand</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -180,5 +217,43 @@ const styles = StyleSheet.create({
     color: "#fff",
     marginBottom: 16,
     fontWeight: "bold",
+  },
+  privacyOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 20,
+  },
+  privacyModal: {
+    backgroundColor: "#042aff",
+    padding: 24,
+    borderRadius: 12,
+    width: "100%",
+    maxWidth: 400,
+  },
+  privacyTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  privacyText: {
+    fontSize: 16,
+    color: "#fff",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  privacyButton: {
+    backgroundColor: "#fff",
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  privacyButtonText: {
+    color: "#042aff",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
