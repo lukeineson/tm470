@@ -9,7 +9,7 @@ db.trainingModules.insertMany([
     title: "Sit",
     category: "Basic Obedience",
     difficulty: "Easy",
-    imagePath: "/images/puppy_sitting_down.png",
+    imagePath: "/images/sit.jpg",
     trainingSteps: [
       "Hold a treat close to your puppy’s nose.",
       "Move your hand up so their head follows and bottom lowers.",
@@ -21,7 +21,7 @@ db.trainingModules.insertMany([
     title: "Stay",
     category: "Basic Obedience",
     difficulty: "Medium",
-    imagePath: "/images/puppy_staying_still_with_hand_signal.png",
+    imagePath: "/images/stay.jpg",
     trainingSteps: [
       "Ask your puppy to sit.",
       "Open your palm in front and say “Stay”.",
@@ -33,7 +33,7 @@ db.trainingModules.insertMany([
     title: "Come When Called",
     category: "Basic Obedience",
     difficulty: "Medium",
-    imagePath: "/images/puppy_running_towards_owner.png",
+    imagePath: "/images/come.jpg",
     trainingSteps: [
       "Squat down and say “Come” excitedly.",
       "Reward immediately when your puppy runs to you.",
@@ -44,7 +44,7 @@ db.trainingModules.insertMany([
     title: "Toilet Training",
     category: "Toilet Training",
     difficulty: "Hard",
-    imagePath: "/images/puppy_outside_squatting.png",
+    imagePath: "/images/toilet.jpg",
     trainingSteps: [
       "Take puppy out every 1-2 hours and after meals/sleep.",
       "Go to the same spot and use a cue like “Go Potty”.",
@@ -56,7 +56,7 @@ db.trainingModules.insertMany([
     title: "Crate Training",
     category: "Toilet Training",
     difficulty: "Medium",
-    imagePath: "/images/puppy_in_cozy_crate.png",
+    imagePath: "/images/crate.jpg",
     trainingSteps: [
       "Make crate inviting with soft bedding.",
       "Feed meals inside the crate.",
@@ -68,7 +68,7 @@ db.trainingModules.insertMany([
     title: "Meeting Other Dogs",
     category: "Socialisation",
     difficulty: "Medium",
-    imagePath: "/images/puppies_sniff_each_other.png",
+    imagePath: "/images/socialisation.jpg",
     trainingSteps: [
       "Choose calm, friendly dogs to introduce your puppy to.",
       "Keep both on a leash at first.",
@@ -80,7 +80,7 @@ db.trainingModules.insertMany([
     title: "Meeting People",
     category: "Socialisation",
     difficulty: "Easy",
-    imagePath: "/images/puppy_being_petted_by_kids.png",
+    imagePath: "/images/meeting_people.jpg",
     trainingSteps: [
       "Expose your puppy to different types of people (Adults, Children).",
       "Allow puppy to approach at their own pace.",
@@ -91,7 +91,7 @@ db.trainingModules.insertMany([
     title: "Walking on a Lead",
     category: "Lead Walking",
     difficulty: "Medium",
-    imagePath: "/images/puppy_on_lead_with_owner.png",
+    imagePath: "/images/lead.jpg",
     trainingSteps: [
       "Introduce the collar/harness indoors.",
       "Attach the lead and let them explore.",
@@ -103,7 +103,7 @@ db.trainingModules.insertMany([
     title: "Loose-lead Walking",
     category: "Lead Walking",
     difficulty: "Hard",
-    imagePath: "/images/owner_and_puppy_walking_side_by_side.png",
+    imagePath: "/images/loose_lead.jpg",
     trainingSteps: [
       "Reward your puppy for walking beside you.",
       "Use a cue like “Lets go”.",
@@ -116,7 +116,7 @@ db.trainingModules.insertMany([
     title: "Leave It",
     category: "Impulse Control",
     difficulty: "Medium",
-    imagePath: "/images/puppy_ignoring_treat_on_floor.png",
+    imagePath: "/images/leave_it.jpg",
     trainingSteps: [
       "Hold a treat in a closed fist.",
       "Let your puppy sniff the treat but do not give it.",
@@ -127,7 +127,7 @@ db.trainingModules.insertMany([
     title: "Wait at Door",
     category: "Impulse Control",
     difficulty: "Hard",
-    imagePath: "/images/puppy_sitting_at_doorway.png",
+    imagePath: "/images/door.jpg",
     trainingSteps: [
       "Ask puppy to “Sit” at the door.",
       "Begin to open it slightly.",
@@ -139,7 +139,7 @@ db.trainingModules.insertMany([
     title: "Take It / Drop It",
     category: "Impulse Control",
     difficulty: "Medium",
-    imagePath: "/images/puppy_holding_toy_in_mouth.png",
+    imagePath: "/images/toy.jpg",
     trainingSteps: [
       "Offer a toy and say, “Take it”.",
       "After a moment, offer treat and say, “Drop it”.",
@@ -151,7 +151,7 @@ db.trainingModules.insertMany([
     title: "Shake Paw",
     category: "Enrichment & Tricks",
     difficulty: "Easy",
-    imagePath: "/images/puppy_offering_paw.png",
+    imagePath: "/images/paw.jpg",
     trainingSteps: [
       "Ask puppy to sit.",
       "Gently lift a paw and say “Shake”.",
@@ -163,7 +163,7 @@ db.trainingModules.insertMany([
     title: "Find It",
     category: "Enrichment & Tricks",
     difficulty: "Easy",
-    imagePath: "/images/puppy_sniffing_under_towel.png",
+    imagePath: "/images/sniff.jpg",
     trainingSteps: [
       "Show your puppy a treat.",
       "Hide it under a towel or in a room.",
@@ -174,7 +174,7 @@ db.trainingModules.insertMany([
     title: "Vet Visit Preparation",
     category: "Socialisation",
     difficulty: "Medium",
-    imagePath: "/images/puppy_examined_by_vet.png",
+    imagePath: "/images/vet.jpg",
     trainingSteps: [
       "Touch puppies’ ears, paws and mouth daily.",
       "Reward calm behaviour.",
